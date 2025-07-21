@@ -147,10 +147,6 @@ def draw_map(df, file_name, path = None, start_node = None, end_node = None, sho
             plt.plot(path_x, path_y, color = 'red', linewidth = 2, marker = 'o', markersize = 5)
 
         # 시작점과 끝점 마커는 지도에서 제거
-        # if start_node:
-        #     plt.plot(start_node[0], start_node[1], 'o', color = 'cyan', markersize = 10)
-        # if end_node:
-        #     plt.plot(end_node[0], end_node[1], 'o', color = 'magenta', markersize = 10)
 
 
     plt.title('Area Map')
@@ -195,21 +191,12 @@ def draw_map(df, file_name, path = None, start_node = None, end_node = None, sho
 
 # --- 3단계: 경로 탐색 및 메인 로직 ---
 
-def _heuristic(a, b):
-    '''
-    A* 알고리즘의 휴리스틱 함수 (맨해튼 거리).
-    Args:
-        a (tuple): 시작 노드의 (x, y) 좌표
-        b (tuple): 목표 노드의 (x, y) 좌표
-    Returns:
-        int: 맨해튼 거리
-    '''
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+# _heuristic 함수는 BFS에서 사용되지 않으므로 제거합니다.
 
-def _a_star_search(grid_width, grid_height, start, goal, impassable_cells):
+def _bfs_search(grid_width, grid_height, start, goal, impassable_cells):
     '''
-    A* 알고리즘을 사용하여 그리드에서 시작점에서 목표점까지의 최단 경로를 찾습니다.
-    heapq 대신 리스트 정렬을 사용합니다 (효율성은 떨어질 수 있음).
+    BFS (너비 우선 탐색) 알고리즘을 사용하여 그리드에서 시작점에서 목표점까지의 최단 경로를 찾습니다.
+    이동 비용이 모두 1인 경우에 최단 경로를 보장하며, A*보다 간단합니다.
     Args:
         grid_width (int): 그리드의 최대 X 좌표
         grid_height (int): 그리드의 최대 Y 좌표
@@ -222,25 +209,21 @@ def _a_star_search(grid_width, grid_height, start, goal, impassable_cells):
     if start in impassable_cells or goal in impassable_cells:
         return None # 시작점 또는 목표점이 통과 불가능한 지점인 경우
 
-    # heapq 대신 일반 리스트와 sort()를 사용하여 우선순위 큐 구현
-    frontier = [] # (f_cost, 노드) 튜플 저장
-    frontier.append((0, start))
-    frontier.sort() # 항상 정렬된 상태 유지
+    # BFS를 위한 큐 (Python list의 pop(0) 사용)
+    # collections.deque를 사용하면 더 효율적이지만, 외부 라이브러리 사용 제한으로 list 사용
+    frontier = [start] 
 
-    came_from = {} # 경로 재구성을 위한 맵: {현재 노드: 이전 노드}
-    g_cost = {start: 0} # 시작점에서 각 노드까지의 실제 비용
-    f_cost = {start: _heuristic(start, goal)} # A* 비용 (g_cost + heuristic)
+    came_from = {start: None} # 경로 재구성을 위한 맵: {현재 노드: 이전 노드}
+    g_cost = {start: 0} # 시작점에서 각 노드까지의 실제 비용 (BFS에서는 단계 수와 동일)
 
     while frontier:
-        # 가장 작은 f_cost를 가진 노드를 추출
-        current_f_cost, current = frontier.pop(0)
+        current = frontier.pop(0) # 큐의 가장 앞 노드 추출
 
         if current == goal:
             path = []
-            while current in came_from:
+            while current is not None:
                 path.append(current)
                 current = came_from[current]
-            path.append(start)
             return path[::-1] # 경로를 시작점에서 목표점 순서로 뒤집기
 
         # 가능한 이동 (상, 하, 좌, 우)
@@ -255,99 +238,44 @@ def _a_star_search(grid_width, grid_height, start, goal, impassable_cells):
             if neighbor in impassable_cells:
                 continue
 
-            new_g_cost = g_cost[current] + 1 # 이웃으로 이동하는 비용은 1
-
-            if neighbor not in g_cost or new_g_cost < g_cost[neighbor]:
-                g_cost[neighbor] = new_g_cost
-                f_cost[neighbor] = new_g_cost + _heuristic(neighbor, goal)
-                
-                # 새로운 노드를 frontier에 추가하고 정렬
-                frontier.append((f_cost[neighbor], neighbor))
-                frontier.sort()
-                
+            # 이웃이 아직 방문되지 않은 경우 (g_cost에 없음)
+            if neighbor not in g_cost:
+                g_cost[neighbor] = g_cost[current] + 1
+                frontier.append(neighbor)
                 came_from[neighbor] = current
     return None # 경로를 찾을 수 없음
 
-def _generate_permutations(elements):
+def find_closest_bandalgom_cafe(grid_width, grid_height, start_node, all_cafe_coords, impassable_cells):
     '''
-    itertools.permutations를 대체하여 리스트의 모든 순열을 재귀적으로 생성합니다.
-    Args:
-        elements (list): 순열을 생성할 요소들의 리스트
-    Returns:
-        list: 요소들의 모든 가능한 순열을 담은 리스트의 리스트
-    '''
-    if len(elements) == 0:
-        return [[]]
-    if len(elements) == 1:
-        return [elements]
-
-    all_permutations = []
-    for i in range(len(elements)):
-        m = elements[i]
-        # 현재 요소를 제외한 나머지 요소들
-        remaining_elements = elements[:i] + elements[i+1:]
-        # 나머지 요소들의 순열을 재귀적으로 생성
-        for p in _generate_permutations(remaining_elements):
-            all_permutations.append([m] + p) # 현재 요소를 각 순열의 시작에 추가
-    return all_permutations
-
-
-def find_optimal_path_visiting_all_structures(grid_width, grid_height, start, end, structures_to_visit, impassable_cells):
-    '''
-    지정된 모든 구조물을 방문하는 최적의 경로를 찾습니다.
-    세그먼트에는 A*를 사용하고, TSP 부분에는 _generate_permutations를 사용합니다.
+    여러 반달곰 카페 중 시작점에서 가장 가까운 카페를 찾아 그 카페의 좌표와
+    해당 카페까지의 최단 경로를 반환합니다. BFS를 사용합니다.
     Args:
         grid_width (int): 그리드의 최대 X 좌표
         grid_height (int): 그리드의 최대 Y 좌표
-        start (tuple): 시작 노드의 (x, y) 좌표 (1-인덱스)
-        end (tuple): 목표 노드의 (x, y) 좌표 (1-인덱스)
-        structures_to_visit (list): 방문해야 할 모든 구조물 (x, y) 튜플 리스트
+        start_node (tuple): 시작 노드의 (x, y) 좌표
+        all_cafe_coords (list): 모든 반달곰 카페의 (x, y) 튜플 리스트
         impassable_cells (set): 통과할 수 없는 (x, y) 튜플 집합
     Returns:
-        list: (x, y) 튜플로 이루어진 최적의 전체 경로 리스트, 경로가 없으면 None
+        tuple: (가장 가까운 카페 좌표, 해당 카페까지의 최단 경로 리스트)
+                경로를 찾을 수 없으면 (None, None) 반환
     '''
-    # 방문할 중간 구조물이 없는 경우, 단순히 시작점에서 끝점까지 A* 탐색
-    if not structures_to_visit:
-        return _a_star_search(grid_width, grid_height, start, end, impassable_cells)
+    min_path_length = float('inf')
+    closest_cafe_node = None
+    best_path_to_cafe = None
 
-    # 시작점과 끝점을 중간 방문 구조물에서 제외하고 순열을 위한 고유한 좌표만 정렬하여 사용
-    intermediate_structures = sorted(list(set(s for s in structures_to_visit if s != start and s != end)))
-
-    best_full_path = None
-    min_total_length = float('inf')
-
-    # 중간 구조물 방문 순서의 모든 순열 고려 (TSP 해결)
-    # itertools.permutations 대신 사용자 정의 _generate_permutations 함수 사용
-    for perm in _generate_permutations(intermediate_structures):
-        current_path_sequence = [start] + list(perm) + [end] # 전체 순서
-        current_total_length = 0
-        current_full_path_nodes = []
-        path_segments_possible = True
-
-        for i in range(len(current_path_sequence) - 1):
-            segment_start = current_path_sequence[i]
-            segment_end = current_path_sequence[i+1]
-
-            # A*를 사용하여 세그먼트 경로 찾기
-            path_segment = _a_star_search(grid_width, grid_height, segment_start, segment_end, impassable_cells)
-
-            if path_segment is None: # 경로를 찾을 수 없는 경우
-                path_segments_possible = False
-                break
-
-            # 전체 경로에 세그먼트 추가 (다음 세그먼트의 시작 노드 중복 방지)
-            if i == 0:
-                current_full_path_nodes.extend(path_segment)
-            else:
-                current_full_path_nodes.extend(path_segment[1:]) # 첫 노드(이전 세그먼트의 끝 노드) 제외
-
-            current_total_length += len(path_segment) - 1 # 각 단계는 길이에 1을 더함
-
-        if path_segments_possible and current_total_length < min_total_length:
-            min_total_length = current_total_length
-            best_full_path = current_full_path_nodes
-
-    return best_full_path
+    for cafe_coord_arr in all_cafe_coords:
+        cafe_node = tuple(cafe_coord_arr)
+        # BFS를 사용하여 경로 탐색
+        path_to_current_cafe = _bfs_search(grid_width, grid_height, start_node, cafe_node, impassable_cells)
+        
+        if path_to_current_cafe:
+            current_path_length = len(path_to_current_cafe) - 1 # 단계 수
+            if current_path_length < min_path_length:
+                min_path_length = current_path_length
+                closest_cafe_node = cafe_node
+                best_path_to_cafe = path_to_current_cafe
+    
+    return closest_cafe_node, best_path_to_cafe
 
 
 # --- 메인 실행 로직 ---
@@ -379,30 +307,17 @@ if __name__ == '__main__':
         exit()
 
     start_node = tuple(my_home_coords[0])
-    end_node = tuple(bandalgom_coffee_coords[0])
-
-    # 방문해야 할 모든 접근 가능한 구조물 노드 찾기
-    # 건설 현장을 제외한 아파트, 빌딩, 내 집, 반달곰 커피 지점
-    accessible_structures = []
-    for index, row in merged_df.iterrows():
-        if row['final_type'] in ['Apartment', 'Building', 'MyHome', 'BandalgomCoffee']:
-            coord = (row['x'], row['y'])
-            # 해당 구조물 위치 자체가 건설 현장이 아닌 경우에만 추가
-            if coord not in impassable_nodes:
-                accessible_structures.append(coord)
-
-    accessible_structures = list(set(accessible_structures)) # 중복 제거
-
+    
     print(f'My Home (시작점): {start_node}')
-    print(f'Bandalgom Coffee (도착점): {end_node}')
-    print(f'방문해야 할 구조물 (건설 현장 제외): {accessible_structures}')
+    print(f'모든 반달곰 커피 지점: {[tuple(c) for c in bandalgom_coffee_coords]}')
 
-    # 최종 경로 계산
-    final_path = find_optimal_path_visiting_all_structures(
-        max_x, max_y, start_node, end_node, accessible_structures, impassable_nodes
+    # 가장 가까운 반달곰 커피 지점 찾기 및 최단 경로 계산
+    end_node, final_path = find_closest_bandalgom_cafe(
+        max_x, max_y, start_node, bandalgom_coffee_coords, impassable_nodes
     )
-
-    if final_path:
+    
+    if end_node:
+        print(f'가장 가까운 반달곰 커피 (도착점): {end_node}')
         print(f'최단 경로 길이: {len(final_path) - 1} 단계')
         # 경로를 CSV로 저장
         path_df = pd.DataFrame(final_path, columns=['x', 'y'])
@@ -413,7 +328,7 @@ if __name__ == '__main__':
         draw_map(merged_df, 'map_final.png', path = final_path, start_node = start_node, end_node = end_node)
         print('map_final.png 파일이 저장되었습니다.')
     else:
-        print('지정된 모든 구조물을 방문하는 경로를 찾을 수 없습니다.')
+        print('가장 가까운 반달곰 커피 지점까지의 경로를 찾을 수 없습니다.')
         # 경로를 찾을 수 없는 경우, 경로가 없는 최종 맵 다시 그리기
         draw_map(merged_df, 'map_final.png')
         print('map_final.png 파일이 저장되었습니다 (경로 없음).')
