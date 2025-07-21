@@ -2,7 +2,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # CSV 불러오기, merged라는 변수에 저장
-merged = pd.read_csv("merged_all.csv")
+merged = pd.read_csv("merged.csv")
+
+# 공백 제거, NaN 유지
+merged["struct"] = merged["struct"].apply(lambda x: x.strip() if isinstance(x, str) else x)
+
 
 # 시각화 대상: 건물 있거나 공사장인 셀만 필터링 .isna(): Nan값인지 아닌지 Bool 반환
 plot_data = merged[~(merged["struct"].isna() & (merged["ConstructionSite"] == 0))]
@@ -20,8 +24,8 @@ symbols = {
 plt.figure(figsize=(10, 10))
 
 # 구조물별 시각화
-for struct_type in ["Apartment", "Building", "BandalgomCoffee", "MyHome"]: # 시각화 할 구조물 목록
-    data = plot_data[plot_data["struct"] == struct_type] # 
+for struct_type in ["Apartment", "Building", "BandalgomCoffee", "MyHome"]:
+    data = plot_data[plot_data["struct"] == struct_type]
     plt.scatter(data["x"], data["y"],
                 marker=symbols[struct_type]["marker"],
                 color=symbols[struct_type]["color"],
@@ -29,8 +33,8 @@ for struct_type in ["Apartment", "Building", "BandalgomCoffee", "MyHome"]: # 시
                 s=100)
 
 # 6. ConstructionSite만 있는 셀
-construction = plot_data[plot_data["struct"].isna() & (plot_data["ConstructionSite"] == 1)]
-plt.scatter(construction["x"], construction["y"],
+construction_only = plot_data[plot_data["struct"].isna() & (plot_data["ConstructionSite"] == 1)]
+plt.scatter(construction_only["x"], construction_only["y"],
             marker=symbols["ConstructionSite"]["marker"],
             color=symbols["ConstructionSite"]["color"],
             label=symbols["ConstructionSite"]["label"],

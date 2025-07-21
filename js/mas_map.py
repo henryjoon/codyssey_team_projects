@@ -1,29 +1,74 @@
 import pandas as pd
 
-# 1. CSV 파일 불러오기
-area_map = pd.read_csv("dataFile/area_map.csv")
-area_struct = pd.read_csv("dataFile/area_struct.csv")
-area_category = pd.read_csv("dataFile/area_category.csv")
 
-# 2. 공백 제거
-area_map.columns = area_map.columns.str.strip()
-area_struct.columns = area_struct.columns.str.strip()
-area_category.columns = area_category.columns.str.strip()
-area_category["struct"] = area_category["struct"].str.strip()
+def load_data():
+    ##load csv 
+    map_df = pd.read_csv('area_map.csv')
+    struct_df = pd.read_csv('area_struct.csv')
+    category_df = pd.read_csv('area_category.csv')
 
-# 3. category 기준으로 struct 이름 붙이기
-struct_with_name = area_struct.merge(area_category, on="category", how="left")
+    # struct 곰백 제거 ' struct'=>'struct'
+    category_df.columns = category_df.columns.str.strip()
 
-# 4. 위치 기반 병합
-merged = area_map.merge(struct_with_name, on=["x", "y"], how="left")
+    return map_df, struct_df, category_df
 
-# ✅ 5. 병합 결과를 CSV로 저장 (모든 셀 포함!)
-merged.to_csv("merged_all.csv", index=False)
 
-# ✅ 6. 터미널 출력용 데이터는 조건 필터링 (공사장도 건물도 없으면 제외)
-filtered = merged[~(merged["struct"].isna() & (merged["ConstructionSite"] == 0))]
+def merge_data(map_df, struct_df, category_df):
+    ## 병합 && 이름으로 변환
+    # 구조물 이름 병합 => struct 추가
+    struct_df = struct_df.merge(category_df, on='category', how='left')
 
-# ✅ 7. 구조물 기준 개수 출력
-category_counts = filtered["struct"].dropna().value_counts()
-print("\n[전체 지역 구조물 종류별 개수]")
-print(category_counts)
+    # map과 병합 => ConstructionSite 추가
+    merged_df = map_df.merge(struct_df, on=['x','y'], how='left')
+    
+    # area 기준 sort
+    merged_df = merged_df.sort_values(by='area')
+    return merged_df
+
+
+def filter_area_one(df):
+    ## area 1 필터링
+    return df[df['area'] == 1].copy()
+
+
+def summarize_by_structure(df):
+    ## (보너스) 구조물 통계 요약
+    print('\n[구조물 종류별 통계]')
+    print(df['struct'].value_counts())
+
+
+def main():
+    map_df, struct_df, category_df = load_data()
+    
+    # 출력(5행만)
+    print(f'[area_map.csv]\n{map_df.head()}')
+    print(f'\n[area_struct.csv]\n{struct_df.head()}')
+    print(f'\n[area_category]\n{category_df.head()}')
+    
+    # 병합
+    merged_df = merge_data(map_df, struct_df, category_df)
+    area1_df = filter_area_one(merged_df)
+    merged_df.to_csv('merged.csv', index=False)
+    print(f'\n[merge]\n{merged_df}')
+
+    #분석 => area별 반달곰커피 개수
+    coffee_counts = merged_df[merged_df['struct'] == ' BandalgomCoffee'].groupby('area').size()
+
+    print('\n[area별 반달곰커피 개수]')
+    for area, count in coffee_counts.items():
+        print(f"area {area}: {count}개\n")
+
+
+    # area 1 데이터 저장
+    area1_df = area1_df.sort_values(by=['x','y'])
+    area1_df.to_csv('area1_filtered.csv', index=False)
+
+    # area 1 데이터 출력
+    print(f'\n[area 1 데이터]\n{area1_df}')
+
+    # (보너스) 구조물 종류별 통계 출력 (전체 지역)
+    summarize_by_structure(merged_df)
+
+
+if __name__ == '__main__':
+    main()
