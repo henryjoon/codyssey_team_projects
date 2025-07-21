@@ -97,9 +97,9 @@ def visualize_map_with_path(merged_df, path):
     max_x, max_y = merged_df['x'].max(), merged_df['y'].max()
     fig, ax = plt.subplots(figsize=(12, 10))
 
-    ax.set_xlim(0.5, max_x + 0.5)
-    ax.set_ylim(0.5, max_y + 0.5)
-    ax.set_xticks(range(1, max_x + 1))
+    ax.set_xlim(0.5, max_x + 0.5) # x눈금 한계치 설정
+    ax.set_ylim(0.5, max_y + 0.5) # y눈금 한계치 설정
+    ax.set_xticks(range(1, max_x + 1)) #x 눈금 표시
     ax.set_yticks(range(1, max_y + 1))
     ax.grid(True, color='lightgray', linewidth=0.5)
     ax.invert_yaxis()
@@ -118,7 +118,7 @@ def visualize_map_with_path(merged_df, path):
         ))
 
     # 구조물 그리기
-    for _, r in merged_df.iterrows():
+    for _, r in merged_df.iterrows():  # 각행을 index, 시리즈로 반환
         if r['struct'] == 'None':        
             continue
         elif r['struct'] in ('Apartment', 'Building'):
