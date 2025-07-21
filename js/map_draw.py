@@ -29,7 +29,7 @@ plt.scatter(construction_all["x"], construction_all["y"],
             marker=symbols["ConstructionSite"]["marker"],
             color=symbols["ConstructionSite"]["color"],
             label=symbols["ConstructionSite"]["label"],
-            s=300)
+            s=700)
 
 # 2. 구조물 시각화 (공사장이 아닌 경우만)
 for struct_type in ["Apartment", "Building", "BandalgomCoffee", "MyHome"]:
@@ -41,7 +41,7 @@ for struct_type in ["Apartment", "Building", "BandalgomCoffee", "MyHome"]:
                 marker=symbols[struct_type]["marker"],
                 color=symbols[struct_type]["color"],
                 label=symbols[struct_type]["label"],
-                s=300)
+                s=700)
 
 
 # 8. y축 상하 반전 및 그리드
@@ -65,7 +65,7 @@ for x in range(x_min, x_max + 1):
 plt.title("Map Visualization", pad = 30)
 plt.xlabel("X")
 plt.ylabel("Y")
-plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=2, markerscale = 0.5)
+plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=2, markerscale = 0.3)
 
 # 11. 출력 및 저장
 plt.tight_layout()
