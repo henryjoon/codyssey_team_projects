@@ -1,0 +1,5 @@
+struct,total_points,area1,area2,area3,area4,construction_sites,construction_ratio,center_x,center_y,min_x,max_x,min_y,max_y
+ Apartment,5,2,1,1,0,3,0.6,6.0,9.6,1,14,5,14
+ Building,4,2,1,0,0,0,0.0,4.2,8.5,1,12,2,14
+ BandalgomCoffee,2,2,0,0,0,0,0.0,2.5,12.0,2,3,12,12
+ MyHome,1,0,1,0,0,0,0.0,14.0,2.0,14,14,2,2
