@@ -1,22 +1,22 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# 1. 데이터 불러오기 및 전처리
+# 데이터 불러오기 및 전처리
 df = pd.read_csv('merged.csv')
 df['struct'] = df['struct'].apply(lambda x: x.strip() if isinstance(x, str) else x)
 
-# 2. 출발점(MyHome), 도착점(BandalgomCoffee)
+# 출발점(MyHome), 도착점(BandalgomCoffee)
 start = df[df['struct'] == 'MyHome'][['x', 'y']].iloc[0]
 start = (int(start['x']), int(start['y']))
-goals = df[df['struct'] == 'BandalgomCoffee'][['x', 'y']].apply(tuple, axis = 1).tolist()
+goals = df[df['struct'] == 'BandalgomCoffee'][['x', 'y']].apply(tuple, axis=1).tolist()
 
-# 3. 장애물 좌표 목록 생성
-obstacles = df[df['ConstructionSite'] == 1][['x', 'y']].apply(tuple, axis = 1).tolist()
+# 장애물 좌표 목록 생성
+obstacles = df[df['ConstructionSite'] == 1][['x', 'y']].apply(tuple, axis=1).tolist()
 
-# 4. BFS 함수 (deque 없이 리스트로 큐 구현)
+# BFS 함수 (deque 없이 리스트로 큐 구현)
 def bfs(start, goals, obstacles):
     visited = set()
-    queue = [(start, [start])]  # (현재 좌표, 경로 리스트)
+    queue = [(start, [start])]
     visited.add(start)
 
     while queue:
@@ -36,49 +36,63 @@ def bfs(start, goals, obstacles):
                 queue.append((neighbor, path + [neighbor]))
     return None
 
-# 5. 최단 경로 탐색
+# 최단 경로 탐색
 path = bfs(start, goals, obstacles)
 
-# 6. 경로 CSV 저장
-pd.DataFrame(path, columns = ['x', 'y']).to_csv('home_to_cafe.csv', index = False)
+# 경로 CSV 저장
+pd.DataFrame(path, columns=['x', 'y']).to_csv('home_to_cafe.csv', index=False)
 
-# 7. 지도 시각화
-plt.figure(figsize = (10, 10))
+# 지도 시각화
+plt.figure(figsize=(10, 10))
+ax = plt.gca()
 
-# 공사장
+# 그리드 설정
+max_x = df['x'].max()
+max_y = df['y'].max()
+ax.set_xticks([x + 0.5 for x in range(max_x + 1)])
+ax.set_yticks([y + 0.5 for y in range(max_y + 1)])
+ax.grid(which='major', color='gray', linestyle='-', linewidth=0.5)
+ax.set_xticks(range(1, max_x + 1))
+ax.set_yticks(range(1, max_y + 1))
+ax.set_xticklabels(range(1, max_x + 1))
+ax.set_yticklabels(range(1, max_y + 1))
+ax.xaxis.tick_top()
+ax.xaxis.set_label_position('top')
+
+# 공사장 시각화
 construction = df[df['ConstructionSite'] == 1]
-plt.scatter(construction['x'], construction['y'], s = 2000, marker = 's', color = 'gray', label = 'Construction')
+plt.scatter(construction['x'], construction['y'], s=2000, marker='s', color='gray', label='Construction Site')
 
-# 구조물
-for struct, marker, color in [
-    ('Apartment', 'o', 'brown'),
-    ('Building', 'o', 'brown'),
-    ('BandalgomCoffee', 's', 'green'),
-    ('MyHome', '^', 'green')
+# 구조물 시각화
+for struct, marker, color, label in [
+    ('Apartment', 'o', 'brown', 'Apartment / Building'),
+    ('Building', 'o', 'brown', 'Apartment / Building'),
+    ('BandalgomCoffee', 's', 'darkgreen', 'Bandalgom Coffee'),
+    ('MyHome', '^', 'limegreen', 'My Home')
 ]:
     data = df[(df['struct'] == struct) & (df['ConstructionSite'] == 0)]
-    plt.scatter(data['x'], data['y'], s = 500, marker = marker, color = color, label = struct)
+    if not data.empty:
+        plt.scatter(data['x'], data['y'], s=500, marker=marker, color=color, label=label)
 
-# 경로 선
-path_x = [p[0] for p in path]
-path_y = [p[1] for p in path]
-plt.plot(path_x, path_y, color = 'red', linewidth = 3, label = 'Shortest Path')
+# 경로 시각화
+if path:
+    path_x = [p[0] for p in path]
+    path_y = [p[1] for p in path]
+    plt.plot(path_x, path_y, color='red', linewidth=2, marker='o', markersize=6, label='Shortest Path')
 
-# 눈금/격자 설정
-plt.gca().invert_yaxis()
-plt.grid(True)
-plt.xticks(range(df['x'].min(), df['x'].max() + 1), labels = [''] * (df['x'].max() - df['x'].min() + 1))
-plt.yticks(range(df['y'].min(), df['y'].max() + 1))
+# 제목과 축 설정
+plt.title('Map', pad=20)
+plt.xlabel('X Coordinate')
+plt.ylabel('Y Coordinate')
+plt.xlim(0.5, max_x + 0.5)
+plt.ylim(max_y + 0.5, 0.5)
+plt.gca().set_aspect('equal', adjustable='box')
 
-# 상단에 x 좌표 텍스트 표시
-top_y = df['y'].min() - 0.1
-for x in range(df['x'].min(), df['x'].max() + 1):
-    plt.text(x, top_y, str(x), ha = 'center', va = 'bottom', fontsize = 10)
+# 범례 설정
+handles, labels = plt.gca().get_legend_handles_labels()
+by_label = dict(zip(labels, handles))
+plt.legend(by_label.values(), by_label.keys(), loc='lower right', frameon=True, fontsize=10, markerscale = 0.3)
 
-plt.title('Map Visualization with BFS Path', pad=30)
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.legend(loc = 'upper center', bbox_to_anchor = (0.5, -0.05), ncol = 2, markerscale = 0.3)
 plt.tight_layout()
 plt.savefig('map_final.png')
 plt.show()

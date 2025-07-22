@@ -1,76 +1,84 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# CSV 불러오기, merged라는 변수에 저장
+# CSV 불러오기
 merged = pd.read_csv('merged.csv')
 
 # 공백 제거, NaN 유지
 merged['struct'] = merged['struct'].apply(lambda x: x.strip() if isinstance(x, str) else x)
 
-
-# 시각화 대상: 건물 있거나 공사장인 셀만 필터링 .isna(): Nan값인지 아닌지 Bool 반환
+# 시각화 대상: 건물 있거나 공사장인 셀만 필터링
 plot_data = merged[~(merged['struct'].isna() & (merged['ConstructionSite'] == 0))]
 
-# 구조물별 기호와 색상 정의 marker모양, color색깔, label범례에 표시될 이름
+# 구조물별 마커, 색상, 라벨
 symbols = {
-    'Apartment': {'marker': 'o', 'color': 'brown', 'label': 'Apartment'},
-    'Building': {'marker': 'o', 'color': 'brown', 'label': 'Building'},
+    'Apartment': {'marker': 'o', 'color': 'brown', 'label': 'Apartment / Building'},
+    'Building': {'marker': 'o', 'color': 'brown', 'label': 'Apartment / Building'},
     'BandalgomCoffee': {'marker': 's', 'color': 'green', 'label': 'Bandalgom Coffee'},
     'MyHome': {'marker': '^', 'color': 'green', 'label': 'My Home'},
-    'ConstructionSite': {'marker': 's', 'color': 'gray', 'label': 'ConstructionSite'}
+    'ConstructionSite': {'marker': 's', 'color': 'gray', 'label': 'Construction Site'}
 }
 
-# 그래프 생성: 10인치 x 10인치로 사이즈 설정
-plt.figure(figsize = (10, 10))
+# 지도 시각화
+plt.figure(figsize=(10, 10))
+ax = plt.gca()
 
-# 1. 공사장 먼저 시각화 (무조건 우선)
-construction_all = plot_data[plot_data['ConstructionSite'] == 1]
-plt.scatter(construction_all['x'], construction_all['y'],
-            marker = symbols['ConstructionSite']['marker'],
-            color = symbols['ConstructionSite']['color'],
-            label = symbols['ConstructionSite']['label'],
-            s = 2000)
+# 그리드 설정
+max_x = merged['x'].max()
+max_y = merged['y'].max()
+ax.set_xticks([x + 0.5 for x in range(max_x + 1)])
+ax.set_yticks([y + 0.5 for y in range(max_y + 1)])
+ax.grid(which='major', color='gray', linestyle='-', linewidth=0.5)
+ax.set_xticks(range(1, max_x + 1))
+ax.set_yticks(range(1, max_y + 1))
+ax.set_xticklabels(range(1, max_x + 1))
+ax.set_yticklabels(range(1, max_y + 1))
+ax.xaxis.tick_top()
+ax.xaxis.set_label_position('top')
 
-# 2. 구조물 시각화 (공사장이 아닌 경우만)
+# 제목과 축 설정
+plt.title('Map', pad=20)
+plt.xlabel('X Coordinate')
+plt.ylabel('Y Coordinate')
+plt.xlim(0.5, max_x + 0.5)
+plt.ylim(max_y + 0.5, 0.5)
+plt.gca().set_aspect('equal', adjustable='box')
+
+# 공사장 먼저 시각화
+construction = plot_data[plot_data['ConstructionSite'] == 1]
+plt.scatter(construction['x'], construction['y'],
+            marker=symbols['ConstructionSite']['marker'],
+            color=symbols['ConstructionSite']['color'],
+            label=symbols['ConstructionSite']['label'],
+            s=2000)
+
+# 구조물 시각화 (공사장이 아닌 셀만)
+used_labels = set()
 for struct_type in ['Apartment', 'Building', 'BandalgomCoffee', 'MyHome']:
-    data = plot_data[
-        (plot_data['struct'] == struct_type) &
-        (plot_data['ConstructionSite'] == 0)  # 공사장 아닌 셀만 시각화
-    ]
+    data = plot_data[(plot_data['struct'] == struct_type) & (plot_data['ConstructionSite'] == 0)]
+    label = symbols[struct_type]['label']
+    
+    # 중복 라벨 제거
+    if label not in used_labels:
+        show_label = label
+        used_labels.add(label)
+    else:
+        show_label = None
+
     plt.scatter(data['x'], data['y'],
-                marker = symbols[struct_type]['marker'],
-                color = symbols[struct_type]['color'],
-                label = symbols[struct_type]['label'],
-                s = 500)
+                marker=symbols[struct_type]['marker'],
+                color=symbols[struct_type]['color'],
+                label=show_label,
+                s=500)
 
+plt.legend(loc='lower right', fontsize=10, markerscale=0.3, frameon=True)
 
-# 8. y축 상하 반전 및 그리드
-plt.gca().invert_yaxis()
-plt.grid(True)
+# 범례 설정
+handles, labels = plt.gca().get_legend_handles_labels()
+by_label = dict(zip(labels, handles))
+plt.legend(by_label.values(), by_label.keys(), loc='lower right', frameon=True, fontsize=10, markerscale = 0.3)
 
-# 9. 축 범위 및 눈금 설정
-x_min, x_max = merged['x'].min(), merged['x'].max()
-y_min, y_max = merged['y'].min(), merged['y'].max()
-plt.xticks(ticks=range(x_min, x_max + 1), labels=[''] * (x_max - x_min + 1))
-plt.yticks(range(y_min, y_max + 1))
-
-# ✅ x좌표를 플롯 내부의 상단에 추가 (y_max보다 약간 위에 표시)
-top_y = y_min - 0.1 # y축이 invert되어 있으므로 숫자가 클수록 아래임
-for x in range(x_min, x_max + 1):
-    plt.text(x, top_y, str(x), ha = 'center', va = 'bottom', fontsize = 10,)
-
-
-
-# 10. 제목, 레이블, 범례
-plt.title('Map Visualization', pad = 30)
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.legend(loc = 'upper center', bbox_to_anchor = (0.5, -0.05), ncol = 2, markerscale = 0.3)
-
-# 11. 출력 및 저장
+# 저장 및 출력
 plt.tight_layout()
 plt.savefig('map.png')
 plt.show()
-
-# 모양 사이즈 키우기
-# 좌표 번호 상단에 하기
