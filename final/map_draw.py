@@ -20,7 +20,7 @@ symbols = {
 }
 
 # 지도 시각화
-plt.figure(figsize=(10, 10))
+plt.figure(figsize = (10, 10))
 ax = plt.gca()
 
 # 그리드 설정
@@ -28,7 +28,7 @@ max_x = merged['x'].max()
 max_y = merged['y'].max()
 ax.set_xticks([x + 0.5 for x in range(max_x + 1)])
 ax.set_yticks([y + 0.5 for y in range(max_y + 1)])
-ax.grid(which='major', color='gray', linestyle='-', linewidth=0.5)
+ax.grid(which = 'major', color = 'gray', linestyle = '-', linewidth = 0.5)
 ax.set_xticks(range(1, max_x + 1))
 ax.set_yticks(range(1, max_y + 1))
 ax.set_xticklabels(range(1, max_x + 1))
@@ -37,20 +37,20 @@ ax.xaxis.tick_top()
 ax.xaxis.set_label_position('top')
 
 # 제목과 축 설정
-plt.title('Map', pad=20)
+plt.title('Map', pad = 20)
 plt.xlabel('X Coordinate')
 plt.ylabel('Y Coordinate')
 plt.xlim(0.5, max_x + 0.5)
 plt.ylim(max_y + 0.5, 0.5)
-plt.gca().set_aspect('equal', adjustable='box')
+plt.gca().set_aspect('equal', adjustable = 'box')
 
 # 공사장 먼저 시각화
 construction = plot_data[plot_data['ConstructionSite'] == 1]
 plt.scatter(construction['x'], construction['y'],
-            marker=symbols['ConstructionSite']['marker'],
-            color=symbols['ConstructionSite']['color'],
-            label=symbols['ConstructionSite']['label'],
-            s=2000)
+            marker = symbols['ConstructionSite']['marker'],
+            color = symbols['ConstructionSite']['color'],
+            label = symbols['ConstructionSite']['label'],
+            s = 2000)
 
 # 구조물 시각화 (공사장이 아닌 셀만)
 used_labels = set()
@@ -66,17 +66,17 @@ for struct_type in ['Apartment', 'Building', 'BandalgomCoffee', 'MyHome']:
         show_label = None
 
     plt.scatter(data['x'], data['y'],
-                marker=symbols[struct_type]['marker'],
-                color=symbols[struct_type]['color'],
-                label=show_label,
-                s=500)
+                marker = symbols[struct_type]['marker'],
+                color = symbols[struct_type]['color'],
+                label  =show_label,
+                s = 500)
 
-plt.legend(loc='lower right', fontsize=10, markerscale=0.3, frameon=True)
+plt.legend(loc = 'lower right', fontsize = 10, markerscale = 0.3, frameon = True)
 
 # 범례 설정
 handles, labels = plt.gca().get_legend_handles_labels()
 by_label = dict(zip(labels, handles))
-plt.legend(by_label.values(), by_label.keys(), loc='lower right', frameon=True, fontsize=10, markerscale = 0.3)
+plt.legend(by_label.values(), by_label.keys(), loc = 'lower right', frameon = True, fontsize = 10, markerscale = 0.3)
 
 # 저장 및 출력
 plt.tight_layout()

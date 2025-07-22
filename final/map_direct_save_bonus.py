@@ -26,14 +26,14 @@ def load_and_process_data(area_category_path, area_map_path, area_struct_path):
         else:
             return 'Empty'
 
-    merged_df['final_type'] = merged_df.apply(get_cell_type, axis=1)
+    merged_df['final_type'] = merged_df.apply(get_cell_type, axis = 1)
 
     return merged_df
 
 
 # --- 2단계: 지도 시각화 함수 ---
 
-def draw_map(df, file_name, path=None, start_node=None, end_node=None, show_legend=True, show_plot=True):
+def draw_map(df, file_name, path = None, start_node = None, end_node = None, show_legend = True, show_plot = True):
     '''
     주어진 데이터프레임을 기반으로 지도를 시각화하여 이미지 파일로 저장합니다.
 
@@ -49,13 +49,13 @@ def draw_map(df, file_name, path=None, start_node=None, end_node=None, show_lege
     max_x = df['x'].max()
     max_y = df['y'].max()
 
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize = (10, 10))
     ax = plt.gca()
 
     # 그리드 라인 설정 (numpy.arange 대신 list comprehension 사용)
-    ax.set_xticks([x + 0.5 for x in range(max_x + 1)], minor=False)
-    ax.set_yticks([y + 0.5 for y in range(max_y + 1)], minor=False)
-    ax.grid(which='major', color='gray', linestyle='-', linewidth=0.5)
+    ax.set_xticks([x + 0.5 for x in range(max_x + 1)], minor = False)
+    ax.set_yticks([y + 0.5 for y in range(max_y + 1)], minor = False)
+    ax.grid(which = 'major', color = 'gray', linestyle = '-', linewidth = 0.5)
 
     # X축 눈금을 맵 위에 그리기
     ax.xaxis.tick_top()
@@ -71,32 +71,32 @@ def draw_map(df, file_name, path=None, start_node=None, end_node=None, show_lege
         if cell_type == 'Apartment' or cell_type == 'Building':
             label = 'Apartment/Building'
             if label not in unique_labels:
-                plt.plot(x, y, 'o', color='saddlebrown', markersize=20, label=label)
+                plt.plot(x, y, 'o', color = 'saddlebrown', markersize = 20, label = label)
                 unique_labels[label] = True
             else:
-                plt.plot(x, y, 'o', color='saddlebrown', markersize=20)
+                plt.plot(x, y, 'o', color = 'saddlebrown', markersize = 20)
         elif cell_type == 'BandalgomCoffee':
             label = 'Bandalgom Coffee'
             if label not in unique_labels:
-                plt.plot(x, y, 's', color='green', markersize=20, label=label)
+                plt.plot(x, y, 's', color = 'green', markersize = 20, label = label)
                 unique_labels[label] = True
             else:
-                plt.plot(x, y, 's', color='green', markersize=20)
+                plt.plot(x, y, 's', color = 'green', markersize = 20)
         elif cell_type == 'MyHome':
             label = 'My Home'
             if label not in unique_labels:
-                plt.plot(x, y, '^', color='green', markersize=20, label=label)
+                plt.plot(x, y, '^', color = 'green', markersize = 20, label = label)
                 unique_labels[label] = True
             else:
-                plt.plot(x, y, '^', color='green', markersize=20)
+                plt.plot(x, y, '^', color = 'green', markersize = 20)
         elif cell_type == 'ConstructionSite':
             label = 'Construction Site'
             # 건설 현장은 바로 옆 좌표와 살짝 겹쳐도 되므로, 마커 크기를 약간 크게 설정
             if label not in unique_labels:
-                plt.plot(x, y, 's', color='gray', markersize=36, label=label, alpha=0.8)
+                plt.plot(x, y, 's', color = 'gray', markersize = 36, label = label, alpha = 0.8)
                 unique_labels[label] = True
             else:
-                plt.plot(x, y, 's', color='gray', markersize=36, alpha=0.8)
+                plt.plot(x, y, 's', color = 'gray', markersize = 36, alpha = 0.8)
 
     # 경로 플로팅
     if path:
@@ -104,10 +104,10 @@ def draw_map(df, file_name, path=None, start_node=None, end_node=None, show_lege
         path_y = [p[1] for p in path]
         label = 'Shortest Path'
         if label not in unique_labels:
-            plt.plot(path_x, path_y, color='red', linewidth=2, marker='o', markersize=10, label=label)
+            plt.plot(path_x, path_y, color = 'red', linewidth = 2, marker = 'o', markersize = 10, label = label)
             unique_labels[label] = True
         else:
-            plt.plot(path_x, path_y, color='red', linewidth=2, marker='o', markersize=10)
+            plt.plot(path_x, path_y, color = 'red', linewidth = 2, marker = 'o', markersize = 10)
 
     plt.title('Area Map')
     plt.xlabel('X Coordinate')
@@ -120,43 +120,43 @@ def draw_map(df, file_name, path=None, start_node=None, end_node=None, show_lege
     # 범례 표시
     if show_legend:
         legend_items = [
-            plt.Rectangle((0, 0), 1, 1, facecolor='gray', alpha=0.7, 
-                         edgecolor='black', linewidth=0.5, label='Construction Site'),
-            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='saddlebrown', 
-                      markersize=12, markeredgecolor='black', markeredgewidth=0.5, 
-                      label='Apartment / Building'),
-            plt.Line2D([0], [0], marker='s', color='w', markerfacecolor='darkgreen', 
-                      markersize=12, markeredgecolor='black', markeredgewidth=0.5,
-                      label='Bandalgom Coffee'),
-            plt.Line2D([0], [0], marker='^', color='w', markerfacecolor='limegreen', 
-                      markersize=14, markeredgecolor='black', markeredgewidth=0.5,
-                      label='My Home'),
+            plt.Rectangle((0, 0), 1, 1, facecolor = 'gray', alpha = 0.7, 
+                         edgecolor = 'black', linewidth = 0.5, label = 'Construction Site'),
+            plt.Line2D([0], [0], marker = 'o', color = 'w', markerfacecolor = 'saddlebrown', 
+                      markersize = 12, markeredgecolor = 'black', markeredgewidth = 0.5, 
+                      label = 'Apartment / Building'),
+            plt.Line2D([0], [0], marker = 's', color = 'w', markerfacecolor = 'darkgreen', 
+                      markersize = 12, markeredgecolor = 'black', markeredgewidth = 0.5,
+                      label = 'Bandalgom Coffee'),
+            plt.Line2D([0], [0], marker = '^', color = 'w', markerfacecolor = 'limegreen', 
+                      markersize = 14, markeredgecolor = 'black', markeredgewidth = 0.5,
+                      label = 'My Home'),
         ]
         
         if path:
             legend_items.append(
-                plt.Line2D([0], [0], color='red', linewidth=3, alpha=0.8, label='Shortest Path')
+                plt.Line2D([0], [0], color = 'red', linewidth = 3, alpha = 0.8, label = 'Shortest Path')
             )
         
-        ax.legend(handles=legend_items, loc='lower right', frameon=True, 
-                 fancybox=True, shadow=True, fontsize=10)
+        ax.legend(handles = legend_items, loc = 'lower right', frameon = True, 
+                 fancybox = True, shadow = True, fontsize = 10)
     
     plt.xticks(list(range(1, max_x + 1)))
     plt.yticks(list(range(1, max_y + 1)))
-    plt.gca().set_aspect('equal', adjustable='box')
+    plt.gca().set_aspect('equal', adjustable = 'box')
     
     # 파일 저장
-    plt.savefig(file_name, dpi=150, bbox_inches='tight')
-    print(f"{file_name} 파일이 저장되었습니다.")
+    plt.savefig(file_name, dpi = 150, bbox_inches = 'tight')
+    print(f'{file_name} 파일이 저장되었습니다.')
     
     # 화면 표시 옵션
     if show_plot:
         try:
             plt.show()  # 윈도우에 플롯 표시
-            print("플롯이 새 창에 표시되었습니다.")
+            print('플롯이 새 창에 표시되었습니다.')
         except Exception as e:
-            print(f"화면 표시 실패: {e}")
-            print("파일로만 저장됩니다.")
+            print(f'화면 표시 실패: {e}')
+            print('파일로만 저장됩니다.')
     else:
         plt.close()
 
@@ -320,14 +320,14 @@ def find_optimal_path_visiting_all_structures(grid_width, grid_height, start, en
 
 # --- 메인 실행 로직 ---
 if __name__ == '__main__':
-    print("matplotlib 백엔드 테스트 중...")
+    print('matplotlib 백엔드 테스트 중...')
     
     # 데이터 로드 및 전처리
     try:
         merged_df = load_and_process_data('area_category.csv', 'area_map.csv', 'area_struct.csv')
-        print("데이터 로드 성공")
+        print('데이터 로드 성공')
     except Exception as e:
-        print(f"데이터 로드 실패: {e}")
+        print(f'데이터 로드 실패: {e}')
         exit()
 
     # 맵 크기(최대 x, y 좌표) 가져오기
@@ -371,7 +371,7 @@ if __name__ == '__main__':
     print(f'방문해야 할 구조물 (건설 현장 제외): {accessible_structures}')
 
     # 최종 경로 계산
-    print("최적 경로 계산 중...")
+    print('최적 경로 계산 중...')
     final_path = find_optimal_path_visiting_all_structures(
         max_x, max_y, start_node, end_node, accessible_structures, impassable_nodes
     )
@@ -379,18 +379,18 @@ if __name__ == '__main__':
     if final_path:
         print(f'최단 경로 길이: {len(final_path) - 1} 단계')
         # 경로를 CSV로 저장
-        path_df = pd.DataFrame(final_path, columns=['x', 'y'])
-        path_df.to_csv('home_to_cafe_bonus.csv', index=False)
+        path_df = pd.DataFrame(final_path, columns = ['x', 'y'])
+        path_df.to_csv('home_to_cafe_bonus.csv', index = False)
         print('home_to_cafe_bonus.csv 파일이 저장되었습니다.')
 
         # 경로가 표시된 최종 맵 그리기 및 표시
-        print("최종 맵 생성 중...")
-        draw_map(merged_df, 'map_final_bonus.png', path=final_path, 
-                start_node=start_node, end_node=end_node, show_plot=True)
+        print('최종 맵 생성 중...')
+        draw_map(merged_df, 'map_final_bonus.png', path = final_path, 
+                start_node = start_node, end_node = end_node, show_plot = True)
     else:
         print('지정된 모든 구조물을 방문하는 경로를 찾을 수 없습니다.')
         # 경로를 찾을 수 없는 경우, 경로가 없는 최종 맵 다시 그리기
-        draw_map(merged_df, 'map_final_bonus.png', show_plot=True)
+        draw_map(merged_df, 'map_final_bonus.png', show_plot = True)
         print('map_final_bonus.png 파일이 저장되었습니다 (경로 없음).')
     
-    print("프로그램이 완료되었습니다.")
+    print('프로그램이 완료되었습니다.')

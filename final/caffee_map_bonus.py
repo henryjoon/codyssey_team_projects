@@ -23,7 +23,7 @@ def main():
             max_y              = ('y', 'max'),
 
         )
-        .sort_values('total_points', ascending=False)
+        .sort_values('total_points', ascending = False)
     )
 
     # --- 6. 소수점 정리 -------------------------------------------------------
