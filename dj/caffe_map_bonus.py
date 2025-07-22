@@ -10,7 +10,7 @@ category_df.columns = category_df.columns.str.strip()
 
 # --- 3. category → struct 매핑 (inner 병합)
 struct_df = struct_df.merge(category_df, on="category", how="inner")
-
+del struct_df['category']  # category 열 제거, 필요 없으므로
 # --- 4. map과 병합 (inner)
 merged_df = map_df.merge(struct_df, on=["x", "y"], how="inner")
 

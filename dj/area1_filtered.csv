@@ -1,7 +1,7 @@
-x,y,ConstructionSite,category,area,struct
-1,13,0,1,1, Apartment
-1,14,0,2,1, Building
-2,12,0,4,1, BandalgomCoffee
-2,14,0,1,1, Apartment
-3,12,0,4,1, BandalgomCoffee
-3,14,0,2,1, Building
+x,y,ConstructionSite,area,struct
+1,13,0,1, Apartment
+1,14,0,1, Building
+2,12,0,1, BandalgomCoffee
+2,14,0,1, Apartment
+3,12,0,1, BandalgomCoffee
+3,14,0,1, Building
