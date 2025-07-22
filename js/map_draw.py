@@ -29,7 +29,7 @@ plt.scatter(construction_all["x"], construction_all["y"],
             marker=symbols["ConstructionSite"]["marker"],
             color=symbols["ConstructionSite"]["color"],
             label=symbols["ConstructionSite"]["label"],
-            s=700)
+            s=500)
 
 # 2. 구조물 시각화 (공사장이 아닌 경우만)
 for struct_type in ["Apartment", "Building", "BandalgomCoffee", "MyHome"]:
@@ -41,7 +41,7 @@ for struct_type in ["Apartment", "Building", "BandalgomCoffee", "MyHome"]:
                 marker=symbols[struct_type]["marker"],
                 color=symbols[struct_type]["color"],
                 label=symbols[struct_type]["label"],
-                s=700)
+                s=500)
 
 
 # 8. y축 상하 반전 및 그리드
