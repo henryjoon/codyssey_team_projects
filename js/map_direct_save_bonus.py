@@ -93,7 +93,7 @@ symbols = {
 }
 
 construction = plot_data[plot_data["ConstructionSite"] == 1]
-plt.scatter(construction["x"], construction["y"], s=300, marker="s", color="gray", label="Construction")
+plt.scatter(construction["x"], construction["y"], s=500, marker="s", color="gray", label="Construction")
 
 for struct_type in ["Apartment", "Building", "BandalgomCoffee", "MyHome"]:
     data = plot_data[(plot_data["struct"] == struct_type) & (plot_data["ConstructionSite"] == 0)]
@@ -101,7 +101,7 @@ for struct_type in ["Apartment", "Building", "BandalgomCoffee", "MyHome"]:
                 marker=symbols[struct_type]["marker"],
                 color=symbols[struct_type]["color"],
                 label=symbols[struct_type]["label"],
-                s=300)
+                s=500)
 
 path_x = [p[0] for p in best_path]
 path_y = [p[1] for p in best_path]

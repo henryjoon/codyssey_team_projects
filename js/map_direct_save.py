@@ -47,7 +47,7 @@ plt.figure(figsize=(10, 10))
 
 # 공사장
 construction = df[df["ConstructionSite"] == 1]
-plt.scatter(construction["x"], construction["y"], s=300, marker="s", color="gray", label="Construction")
+plt.scatter(construction["x"], construction["y"], s=500, marker="s", color="gray", label="Construction")
 
 # 구조물
 for struct, marker, color in [
@@ -57,7 +57,7 @@ for struct, marker, color in [
     ("MyHome", "^", "green")
 ]:
     data = df[(df["struct"] == struct) & (df["ConstructionSite"] == 0)]
-    plt.scatter(data["x"], data["y"], s=300, marker=marker, color=color, label=struct)
+    plt.scatter(data["x"], data["y"], s=500, marker=marker, color=color, label=struct)
 
 # 경로 선
 path_x = [p[0] for p in path]
