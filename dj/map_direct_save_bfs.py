@@ -108,32 +108,32 @@ def draw_map(df, file_name, path = None, start_node = None, end_node = None, sho
         if cell_type == 'Apartment' or cell_type == 'Building':
             label = 'Apartment/Building'
             if label not in unique_labels:
-                plt.plot(x, y, 'o', color = 'saddlebrown', markersize = 10, label = label)
+                plt.plot(x, y, 'o', color = 'saddlebrown', markersize = 20, label = label)
                 unique_labels[label] = True
             else:
-                plt.plot(x, y, 'o', color = 'saddlebrown', markersize = 10)
+                plt.plot(x, y, 'o', color = 'saddlebrown', markersize = 20)
         elif cell_type == 'BandalgomCoffee':
             label = 'Bandalgom Coffee'
             if label not in unique_labels:
-                plt.plot(x, y, 's', color = 'green', markersize = 10, label = label)
+                plt.plot(x, y, 's', color = 'green', markersize = 20, label = label)
                 unique_labels[label] = True
             else:
-                plt.plot(x, y, 's', color = 'green', markersize = 10)
+                plt.plot(x, y, 's', color = 'green', markersize = 20)
         elif cell_type == 'MyHome':
             label = 'My Home'
             if label not in unique_labels:
-                plt.plot(x, y, '^', color = 'green', markersize = 10, label = label)
+                plt.plot(x, y, '^', color = 'green', markersize = 20, label = label)
                 unique_labels[label] = True
             else:
-                plt.plot(x, y, '^', color = 'green', markersize = 10)
+                plt.plot(x, y, '^', color = 'green', markersize = 20)
         elif cell_type == 'ConstructionSite':
             label = 'Construction Site'
             # 건설 현장은 바로 옆 좌표와 살짝 겹쳐도 되므로, 마커 크기를 약간 크게 설정
             if label not in unique_labels:
-                plt.plot(x, y, 's', color = 'gray', markersize = 12, label = label)
+                plt.plot(x, y, 's', color = 'gray', markersize = 22, label = label)
                 unique_labels[label] = True
             else:
-                plt.plot(x, y, 's', color = 'gray', markersize = 12)
+                plt.plot(x, y, 's', color = 'gray', markersize = 22)
 
     # 경로 플로팅
     if path:
@@ -158,29 +158,29 @@ def draw_map(df, file_name, path = None, start_node = None, end_node = None, sho
     plt.ylim(max_y + 0.5, 0.5)
 
     # 범례 표시 (지도 오른쪽 아래)
-    if show_legend:
-        handles, labels = ax.get_legend_handles_labels()
-        # 특정 순서로 범례를 정렬 (Start와 End는 제외)
-        ordered_labels = ['My Home', 'Bandalgom Coffee', 'Apartment/Building', 'Construction Site', 'Shortest Path']
-        
-        # unique_handles_map을 사용하여 중복 제거된 핸들/레이블을 만듦
-        unique_handles_map = {}
-        for handle, label in zip(handles, labels):
-            # 'Start'와 'End' 레이블은 범례에서 제외
-            if label not in ['Start', 'End']:
-                unique_handles_map[label] = handle
+    # # 범례 표시 (지도 오른쪽 아래)
 
-        # 원하는 순서로 범례를 다시 구성하기 위해 빈 리스트 초기화
-        final_ordered_handles = []
-        final_ordered_labels = []
-
-        for target_label in ordered_labels:
-            if target_label in unique_handles_map:
-                final_ordered_handles.append(unique_handles_map[target_label])
-                final_ordered_labels.append(target_label)
-
-        if final_ordered_handles: # 범례 항목이 있을 경우에만 범례 표시
-            plt.legend(final_ordered_handles, final_ordered_labels, loc = 'lower right')
+    legend_items = [
+        plt.Rectangle((0, 0), 1, 1, facecolor='gray', alpha=0.7, 
+                     edgecolor='black', linewidth=0.5, label='Construction Site'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='saddlebrown', 
+                  markersize=12, markeredgecolor='black', markeredgewidth=0.5, 
+                  label='Apartment / Building'),
+        plt.Line2D([0], [0], marker='s', color='w', markerfacecolor='darkgreen', 
+                  markersize=12, markeredgecolor='black', markeredgewidth=0.5,
+                  label='Bandalgom Coffee'),
+        plt.Line2D([0], [0], marker='^', color='w', markerfacecolor='limegreen', 
+                  markersize=14, markeredgecolor='black', markeredgewidth=0.5,
+                  label='My Home'),
+    ]
+    
+    if path:
+        legend_items.append(
+            plt.Line2D([0], [0], color='red', linewidth=3, alpha=0.8, label='Shortest Path')
+        )
+    
+    ax.legend(handles=legend_items, loc='lower right', frameon=True, 
+             fancybox=True, shadow=True, fontsize=10)
 
     plt.xticks(list(range(1, max_x + 1)))
     plt.yticks(list(range(1, max_y + 1)))
